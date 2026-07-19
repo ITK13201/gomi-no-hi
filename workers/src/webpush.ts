@@ -76,7 +76,7 @@ async function encryptPayload(
   const recipientPub = b64urlToBytes(p256dhB64url)
   const authSecret = b64urlToBytes(authB64url)
 
-  const senderPair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits'])
+  const senderPair = (await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits'])) as CryptoKeyPair
   const recipientKey = await crypto.subtle.importKey(
     'raw',
     recipientPub,
@@ -85,10 +85,10 @@ async function encryptPayload(
     [],
   )
 
-  const sharedBits = await crypto.subtle.deriveBits({ name: 'ECDH', public: recipientKey }, senderPair.privateKey, 256)
+  const sharedBits = await crypto.subtle.deriveBits({ name: 'ECDH', $public: recipientKey }, senderPair.privateKey, 256)
   const sharedSecret = new Uint8Array(sharedBits)
 
-  const senderPub = new Uint8Array(await crypto.subtle.exportKey('raw', senderPair.publicKey))
+  const senderPub = new Uint8Array((await crypto.subtle.exportKey('raw', senderPair.publicKey)) as ArrayBuffer)
 
   // RFC 8291 IKM derivation
   const enc = new TextEncoder()
