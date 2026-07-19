@@ -5,7 +5,7 @@ compatibility_date = "2024-12-01"
 # ローカル開発用（本番は Terraform で管理）
 [[kv_namespaces]]
 binding = "KV"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "d386326dba504d5bb29065133bcb8ec0"
 
 [triggers]
 crons = ["0 * * * *"]
