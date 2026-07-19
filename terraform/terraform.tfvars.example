@@ -6,3 +6,5 @@ allowed_ip_addresses = [
 ]
 
 vapid_subject = "mailto:ti2236sh@gmail.com"
+
+custom_domain = "gomi.example.com"

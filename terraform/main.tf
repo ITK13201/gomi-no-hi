@@ -74,6 +74,22 @@ resource "cloudflare_pages_project" "app" {
   }
 }
 
+# ── Custom Domain ─────────────────────────────────────────────────────────────
+resource "cloudflare_pages_domain" "custom" {
+  account_id   = var.account_id
+  project_name = cloudflare_pages_project.app.name
+  name         = var.custom_domain
+}
+
+resource "cloudflare_dns_record" "pages_cname" {
+  zone_id = var.zone_id
+  name    = var.custom_domain
+  type    = "CNAME"
+  content = cloudflare_pages_project.app.subdomain
+  proxied = true
+  ttl     = 1
+}
+
 # ── WAF Custom Rule（IP 許可リスト）──────────────────────────────────────────
 resource "cloudflare_ruleset" "ip_allowlist" {
   zone_id     = var.zone_id

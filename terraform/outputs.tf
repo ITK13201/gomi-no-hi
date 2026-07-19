@@ -12,3 +12,8 @@ output "workers_script_name" {
   value       = cloudflare_workers_script.api.script_name
   description = "Workers スクリプト名"
 }
+
+output "custom_domain" {
+  value       = cloudflare_pages_domain.custom.name
+  description = "独自ドメイン"
+}

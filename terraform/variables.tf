@@ -34,3 +34,8 @@ variable "vapid_subject" {
   default     = "mailto:ti2236sh@gmail.com"
   description = "VAPID subject（mailto: または https:// URL）"
 }
+
+variable "custom_domain" {
+  type        = string
+  description = "独自ドメイン（例: gomi.example.com）"
+}
