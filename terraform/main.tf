@@ -64,12 +64,16 @@ resource "cloudflare_pages_project" "app" {
 
   deployment_configs = {
     production = {
+      fail_open = false
       env_vars = {
         VITE_VAPID_PUBLIC_KEY = {
           type  = "plain_text"
           value = var.vapid_public_key
         }
       }
+    }
+    preview = {
+      fail_open = false
     }
   }
 }
