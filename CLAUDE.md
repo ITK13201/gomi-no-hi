@@ -14,6 +14,7 @@ src/components/ → AGENTS.md（コンポーネント規約・Tailwind 注意点
 src/pages/      → AGENTS.md（ページ構成・Safe Area 対応）
 src/hooks/      → AGENTS.md（カスタムフック規約）
 src/store/      → AGENTS.md（Zustand ストア規約）
+workers/        → AGENTS.md（Cloudflare Workers API・Web Push 実装）
 ```
 
 ## 開発環境
@@ -52,10 +53,28 @@ style={{ backgroundColor: waste.color }}
 2. `src/data/schedule.ts` — 収集日データ（YYYY-MM-DD 形式）
 3. `src/data/wasteTypes.ts` — 品目マスター（既存地区で変更不要な場合が多い）
 
+## Service Worker
+
+`vite.config.ts` は `injectManifest` モードを使用。カスタム SW は `src/sw.ts`。
+`generateSW` モードに戻してはいけない（push イベントハンドラが消える）。
+
 ## デプロイ
 
-Cloudflare Pages（static）。`public/_redirects` で SPA フォールバック済み。
-ビルドコマンド: `npm run build` / 出力: `dist`
+**PWA（Cloudflare Pages）**: GitHub push で自動ビルド・デプロイ。
+ビルドコマンド: `npm run build` / 出力: `dist` / Node.js: 24
+
+**Workers API**: `workers/` 配下。Terraform でデプロイする（GitHub 連携なし）。
+```bash
+cd workers && npm run build   # workers/dist/index.js を生成
+cd ..
+op run --env-file=terraform/.env.1password -- terraform apply
+```
+
+**wrangler の設定ファイルが2つある:**
+- `wrangler.jsonc`（ルート）— Pages 用（assets）
+- `workers/wrangler.toml` — Workers API 用
+
+`workers/` でコマンドを実行するときは必ず `--config wrangler.toml` を付けること（ルートの `wrangler.jsonc` を誤って読む）。
 
 ## Terraform
 

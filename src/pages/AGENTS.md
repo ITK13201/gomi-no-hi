@@ -31,3 +31,16 @@ React Router のルートに対応するページコンポーネント。
 
 `Settings.tsx` で `__APP_VERSION__`（`vite.config.ts` の `define` で注入）を参照している。
 型定義は `src/vite-env.d.ts` にある。`package.json` の `version` フィールドと連動する。
+
+## 通知設定（Settings.tsx）
+
+`useNotification` フックを使う。`useNotificationStore` を直接使って `setEnabled` を呼んではいけない。
+
+```tsx
+const { enabled, permission, enable, disable } = useNotification()
+// トグル時
+enabled ? void disable() : void enable()
+// 通知非対応の判定
+const notificationSupported =
+  'Notification' in window && 'serviceWorker' in navigator && permission !== 'denied'
+```
