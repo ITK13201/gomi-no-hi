@@ -15,6 +15,7 @@ src/pages/      → AGENTS.md（ページ構成・Safe Area 対応）
 src/hooks/      → AGENTS.md（カスタムフック規約）
 src/store/      → AGENTS.md（Zustand ストア規約）
 workers/        → AGENTS.md（Cloudflare Workers API・Web Push 実装）
+terraform/      → AGENTS.md（インフラ構成・IP 制限・シークレット管理・v5 構文注意点）
 ```
 
 ## 開発環境
