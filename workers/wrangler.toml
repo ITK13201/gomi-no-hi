@@ -1,0 +1,17 @@
+name = "gomi-no-hi-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# ローカル開発用（本番は Terraform で管理）
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[triggers]
+crons = ["0 * * * *"]
+
+[vars]
+ALLOWED_IPS = "127.0.0.1"
+VAPID_PUBLIC_KEY = ""
+VAPID_SUBJECT = "mailto:ti2236sh@gmail.com"
+# VAPID_PRIVATE_KEY は wrangler secret put VAPID_PRIVATE_KEY で設定

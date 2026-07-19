@@ -1,24 +1,23 @@
+import { useNotification } from '../hooks/useNotification'
 import { useNotificationStore } from '../store/notificationStore'
 import { REGION_CONFIG } from '../data/config'
 
 declare const __APP_VERSION__: string
 
 export function Settings() {
-  const { enabled, eveningHour, morningHour, setEnabled, setEveningHour, setMorningHour } =
-    useNotificationStore()
+  const { eveningHour, morningHour, setEveningHour, setMorningHour } = useNotificationStore()
+  const { enabled, permission, enable, disable } = useNotification()
 
-  async function handleToggleNotification() {
-    if (!enabled) {
-      const permission = await Notification.requestPermission()
-      if (permission === 'granted') {
-        setEnabled(true)
-      }
+  function handleToggleNotification() {
+    if (enabled) {
+      void disable()
     } else {
-      setEnabled(false)
+      void enable()
     }
   }
 
-  const notificationSupported = 'Notification' in window
+  const notificationSupported =
+    'Notification' in window && 'serviceWorker' in navigator && permission !== 'denied'
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
