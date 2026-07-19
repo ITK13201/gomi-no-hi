@@ -56,3 +56,10 @@ style={{ backgroundColor: waste.color }}
 
 Cloudflare Pages（static）。`public/_redirects` で SPA フォールバック済み。
 ビルドコマンド: `npm run build` / 出力: `dist`
+
+## Terraform
+
+Cloudflare インフラ（Workers・KV・WAF・Pages）はすべて `terraform/` 配下の Terraform で管理する。
+
+**Terraform コードを書く・編集するときは必ず `.mcp.json` の Terraform MCP server を参照すること。**
+リソース仕様・引数・バージョン互換性をコード記述前に確認する。
