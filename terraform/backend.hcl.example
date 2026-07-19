@@ -1,5 +1,5 @@
 # このファイルをコピーして backend.hcl を作成する（.gitignore 対象）
 
-endpoints = { s3 = "https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com" }
+endpoint  = "https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com"
 bucket    = "terraform-state"
 key       = "terraform.tfstate"
