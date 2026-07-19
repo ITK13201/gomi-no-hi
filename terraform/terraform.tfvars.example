@@ -5,6 +5,6 @@ allowed_ip_addresses = [
   "0.0.0.0/0", # 例: 自宅IPやオフィスIP
 ]
 
-vapid_subject = "mailto:ti2236sh@gmail.com"
+vapid_subject = "mailto:user@example.com"
 
 custom_domain = "gomi.example.com"
