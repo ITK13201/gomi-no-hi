@@ -1,6 +1,5 @@
 # このファイルをコピーして backend.hcl を作成する（.gitignore 対象）
-# op://gomi-no-hi/cloudflare/r2_endpoint の値を endpoint に入れる
 
-endpoint = "https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com"
-bucket   = "terraform-state"
-key      = "gomi-no-hi/terraform.tfstate"
+endpoints = { s3 = "https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com" }
+bucket    = "terraform-state"
+key       = "terraform.tfstate"
