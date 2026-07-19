@@ -70,10 +70,20 @@ resource "cloudflare_pages_project" "app" {
           type  = "plain_text"
           value = var.vapid_public_key
         }
+        NODE_VERSION = {
+          type  = "plain_text"
+          value = "24"
+        }
       }
     }
     preview = {
       fail_open = false
+      env_vars = {
+        NODE_VERSION = {
+          type  = "plain_text"
+          value = "24"
+        }
+      }
     }
   }
 }
