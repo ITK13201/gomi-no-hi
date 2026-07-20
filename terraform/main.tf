@@ -104,6 +104,13 @@ resource "cloudflare_dns_record" "pages_cname" {
   ttl     = 1
 }
 
+# ── Workers Route（API パスを Workers スクリプトへルーティング）────────────────
+resource "cloudflare_workers_route" "api" {
+  zone_id = var.zone_id
+  pattern = "${var.custom_domain}/api/*"
+  script  = cloudflare_workers_script.api.script_name
+}
+
 # ── WAF Custom Rule（IP 許可リスト）──────────────────────────────────────────
 resource "cloudflare_ruleset" "ip_allowlist" {
   zone_id     = var.zone_id

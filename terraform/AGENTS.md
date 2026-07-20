@@ -72,8 +72,9 @@ Account
   └─ Cloudflare Pages   : Edit
 
 Zone（対象ドメインのみ）
-  ├─ DNS     : Edit
-  └─ Zone WAF: Edit
+  ├─ DNS            : Edit
+  ├─ Zone WAF       : Edit
+  └─ Workers Routes : Edit
 ```
 
 ## Terraform v5 構文の注意点
