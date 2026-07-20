@@ -7,15 +7,6 @@ const app = new Hono<{ Bindings: Env }>()
 
 app.use('/api/*', cors({ origin: '*', allowMethods: ['POST', 'DELETE', 'OPTIONS'] }))
 
-app.use('/api/*', async (c, next) => {
-  const clientIP = c.req.header('CF-Connecting-IP') ?? ''
-  const allowed = c.env.ALLOWED_IPS.split(',').map((ip) => ip.trim())
-  if (clientIP && !allowed.includes(clientIP)) {
-    return c.text('Forbidden', 403)
-  }
-  await next()
-})
-
 async function subscriptionKey(endpoint: string): Promise<string> {
   const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(endpoint))
   const hex = Array.from(new Uint8Array(hash))

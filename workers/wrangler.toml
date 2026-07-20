@@ -11,7 +11,6 @@ id = "d386326dba504d5bb29065133bcb8ec0"
 crons = ["0 * * * *"]
 
 [vars]
-ALLOWED_IPS = "127.0.0.1"
 VAPID_PUBLIC_KEY = ""
 VAPID_SUBJECT = "mailto:ti2236sh@gmail.com"
 # VAPID_PRIVATE_KEY は wrangler secret put VAPID_PRIVATE_KEY で設定

@@ -19,11 +19,6 @@ resource "cloudflare_workers_script" "api" {
       namespace_id = cloudflare_workers_kv_namespace.subscriptions.id
     },
     {
-      name = "ALLOWED_IPS"
-      type = "plain_text"
-      text = join(",", var.allowed_ip_addresses)
-    },
-    {
       name = "VAPID_PUBLIC_KEY"
       type = "plain_text"
       text = var.vapid_public_key
