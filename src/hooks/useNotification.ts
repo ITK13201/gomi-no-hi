@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNotificationStore } from '../store/notificationStore'
 
 export function useNotification() {
@@ -9,6 +9,25 @@ export function useNotification() {
     if (!('Notification' in window)) return
     setPermission(Notification.permission)
   }, [setPermission])
+
+  const isMounted = useRef(false)
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true
+      return
+    }
+    if (!enabled || permission !== 'granted' || !('serviceWorker' in navigator)) return
+    void (async () => {
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+      if (!subscription) return
+      await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription, morningHour, eveningHour }),
+      })
+    })()
+  }, [morningHour, eveningHour, enabled, permission])
 
   async function enable() {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return

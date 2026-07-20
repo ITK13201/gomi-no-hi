@@ -76,10 +76,14 @@ export async function handleCron(env: Env): Promise<void> {
 
       try {
         await sendWebPush(sub, notification, vapid)
+        console.log(`push sent: ${name}`)
       } catch (err) {
-        // 410 Gone = subscription expired → delete
         if (err instanceof Error && err.message.includes('410')) {
+          // 410 Gone = subscription expired → delete
           await env.KV.delete(name)
+          console.log(`subscription deleted (410): ${name}`)
+        } else {
+          console.error(`push failed for ${name}:`, err)
         }
       }
     }),
