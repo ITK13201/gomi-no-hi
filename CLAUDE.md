@@ -58,6 +58,16 @@ style={{ backgroundColor: waste.color }}
 **`schedule.ts` を更新した場合は `workers/src/schedule.ts` も必ず同期すること。**
 （Worker は独自の静的スケジュールを持ち、プッシュ通知の送信タイミングに使用される）
 
+## ローカルでの Push 通知テスト
+
+`vite.config.ts` に `/api` → `localhost:8787` のプロキシ設定済み。以下を用意すれば本番と同じ VAPID キーでテストできる。
+
+- `workers/.dev.vars` — `VAPID_PRIVATE_KEY=<秘密鍵>` （gitignore 済み）
+- `.env.local` — `VITE_VAPID_PUBLIC_KEY=<公開鍵>` （gitignore 済み）
+- `workers/wrangler.toml` — `VAPID_PUBLIC_KEY` に公開鍵を記載済み
+
+詳細手順は `workers/AGENTS.md` を参照。
+
 ## Service Worker
 
 `vite.config.ts` は `injectManifest` モードを使用。カスタム SW は `src/sw.ts`。

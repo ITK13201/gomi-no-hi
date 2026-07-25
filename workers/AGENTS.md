@@ -32,12 +32,11 @@ op run --env-file=terraform/.env.1password -- terraform apply
 | 変数 | 種別 | 用途 |
 |---|---|---|
 | `KV` | KV Namespace | 購読データの保存 |
-| `ALLOWED_IPS` | plain_text | IP 制限（カンマ区切り） |
 | `VAPID_PUBLIC_KEY` | plain_text | VAPID 公開鍵（base64url） |
 | `VAPID_PRIVATE_KEY` | secret_text | VAPID 秘密鍵（base64url） |
 | `VAPID_SUBJECT` | plain_text | `mailto:` または `https://` URL |
 
-すべて Terraform（`terraform/main.tf`）で管理。ローカル開発用のダミー値は `wrangler.toml` に記載。
+すべて Terraform（`terraform/main.tf`）で管理。ローカル開発用の値は `wrangler.toml`（公開鍵）と `workers/.dev.vars`（秘密鍵）に記載。
 
 ## KV スキーマ
 
@@ -54,9 +53,29 @@ type StoredSubscription = {
 }
 ```
 
+## ローカル開発・デバッグ
+
+```bash
+# push 通知をローカルでテストする場合
+# 1. workers/.dev.vars に VAPID_PRIVATE_KEY を記載（gitignore 済み）
+# 2. ルートの .env.local に VITE_VAPID_PUBLIC_KEY を記載（gitignore 済み）
+# 3. vite.config.ts の server.proxy で /api → localhost:8787 に転送済み
+
+cd workers && npx wrangler dev --config wrangler.toml --test-scheduled
+# 別ターミナルで cron を手動トリガー（hour=N で JST 時刻を指定可）
+curl "http://localhost:8787/__scheduled?cron=0+*+*+*+*"
+```
+
+本番の cron を手動トリガーする場合は `/api/test-cron?hour=N` エンドポイントを使う（WAF で IP 制限済み）。
+
+```bash
+# 本番ログのリアルタイム監視
+npx wrangler tail --config wrangler.toml
+```
+
 ## 注意事項
 
-- ECDH の `deriveBits` では `public` を使う（`$public` は型定義のバグで、ランタイムは `public` を要求する）。型エラーが出る場合は `as EcdhKeyDeriveParams` でキャストする
+- ECDH の `deriveBits` では `public` を使う（`$public` は `@cloudflare/workers-types` の型定義バグで、V8 ランタイムは Web Crypto 仕様の `public` を要求する）。Workers 環境には `EcdhKeyDeriveParams` 型がないため `// @ts-expect-error` でエラーを抑制している
 - `generateKey` の戻り値は `CryptoKeyPair` にキャストする
 - `exportKey('raw', ...)` の戻り値は `ArrayBuffer` にキャストする
 - `src/schedule.ts` は PWA 側の `src/data/schedule.ts` と内容を同期すること
