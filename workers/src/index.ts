@@ -41,6 +41,13 @@ app.delete('/api/subscribe', async (c) => {
   return c.text('OK')
 })
 
+app.get('/api/test-cron', async (c) => {
+  const hourParam = c.req.query('hour')
+  const hour = hourParam !== undefined ? Number(hourParam) : undefined
+  await handleCron(c.env, hour)
+  return c.text('ok')
+})
+
 export default {
   fetch: app.fetch,
   async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {

@@ -56,7 +56,7 @@ type StoredSubscription = {
 
 ## 注意事項
 
-- `@cloudflare/workers-types` では ECDH の `deriveBits` に `public` ではなく `$public` を使う
+- ECDH の `deriveBits` では `public` を使う（`$public` は型定義のバグで、ランタイムは `public` を要求する）。型エラーが出る場合は `as EcdhKeyDeriveParams` でキャストする
 - `generateKey` の戻り値は `CryptoKeyPair` にキャストする
 - `exportKey('raw', ...)` の戻り値は `ArrayBuffer` にキャストする
 - `src/schedule.ts` は PWA 側の `src/data/schedule.ts` と内容を同期すること

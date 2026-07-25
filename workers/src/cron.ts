@@ -30,9 +30,9 @@ function formatDateLabel(dateStr: string): string {
   return `${Number(m)}/${Number(d)}・${days[date.getDay()]}`
 }
 
-export async function handleCron(env: Env): Promise<void> {
+export async function handleCron(env: Env, forceJstHour?: number): Promise<void> {
   const now = new Date()
-  const jstHour = (now.getUTCHours() + 9) % 24
+  const jstHour = forceJstHour ?? (now.getUTCHours() + 9) % 24
 
   const todayStr = toJSTDateStr(now)
   const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)

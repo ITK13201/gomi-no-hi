@@ -6,7 +6,12 @@ import { readFileSync } from 'node:fs'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8')) as { version: string }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8787',
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -14,9 +19,9 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-      registerType: 'autoUpdate',
+      registerType: mode === 'development' ? 'prompt' : 'autoUpdate',
       includeAssets: ['icons/*.png'],
-      devOptions: { enabled: true },
+      devOptions: { enabled: false },
       manifest: {
         name: 'ごみの日',
         short_name: 'ごみの日',
@@ -52,4 +57,4 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
-})
+}))

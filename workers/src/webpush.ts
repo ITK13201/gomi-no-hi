@@ -85,7 +85,12 @@ async function encryptPayload(
     [],
   )
 
-  const sharedBits = await crypto.subtle.deriveBits({ name: 'ECDH', $public: recipientKey }, senderPair.privateKey, 256)
+  // @ts-expect-error Cloudflare types use $public but the V8 runtime requires public per Web Crypto spec
+  const sharedBits = await crypto.subtle.deriveBits(
+    { name: 'ECDH', public: recipientKey },
+    senderPair.privateKey,
+    256,
+  )
   const sharedSecret = new Uint8Array(sharedBits)
 
   const senderPub = new Uint8Array((await crypto.subtle.exportKey('raw', senderPair.publicKey)) as ArrayBuffer)

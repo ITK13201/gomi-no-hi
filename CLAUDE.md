@@ -25,6 +25,7 @@ terraform/      → AGENTS.md（インフラ構成・IP 制限・シークレッ
 npm run dev      # 開発サーバー
 npm run build    # tsc -b && vite build
 npm run preview  # 本番ビルドの確認
+# lint・format コマンドは存在しない。TypeScript strict チェック（tsc -b）がリンターを兼ねる。
 ```
 
 ## TypeScript
@@ -53,6 +54,9 @@ style={{ backgroundColor: waste.color }}
 1. `src/data/config.ts` — 地区名・連絡先・期間
 2. `src/data/schedule.ts` — 収集日データ（YYYY-MM-DD 形式）
 3. `src/data/wasteTypes.ts` — 品目マスター（既存地区で変更不要な場合が多い）
+
+**`schedule.ts` を更新した場合は `workers/src/schedule.ts` も必ず同期すること。**
+（Worker は独自の静的スケジュールを持ち、プッシュ通知の送信タイミングに使用される）
 
 ## Service Worker
 
