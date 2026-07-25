@@ -9,6 +9,7 @@ React Router のルートに対応するページコンポーネント。
 | `Home.tsx` | `/` | 今日・明日・今後7日間の収集表示 |
 | `Calendar.tsx` | `/calendar` | 月間カレンダー（日付クリックで詳細） |
 | `Guide.tsx` | `/guide` | 分別ガイド（アコーディオン） |
+| `Pdf.tsx`      | `/pdf`      | 収集カレンダー PDF ビューワー（iframe） |
 | `Settings.tsx` | `/settings` | 地区情報・通知設定・バージョン表示 |
 
 ## ページの構造パターン
