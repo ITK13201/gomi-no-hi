@@ -20,6 +20,8 @@ terraform/      → AGENTS.md（インフラ構成・IP 制限・シークレッ
 
 ## 開発環境
 
+**必要な外部ツール**: `op`（1Password CLI）— Workers デプロイ時の `op run` で必要
+
 ```bash
 # ディレクトリに cd するだけで nix develop が自動ロードされる（direnv）
 npm run dev      # 開発サーバー
@@ -33,6 +35,7 @@ npm run preview  # 本番ビルドの確認
 - `strict: true` / `noUnusedLocals` / `noUnusedParameters` — 未使用の import・変数はビルドエラーになる
 - `any` / `unknown` 型は使わない
 - `noUncheckedSideEffectImports` — 副作用のみの import は禁止
+- **バージョン分離**: ルートは TS 7.x、`workers/` は TS 5.7.x — `workers/` のコードには TS7 固有の構文を使わないこと
 
 ## Tailwind CSS v4
 

@@ -8,6 +8,7 @@ export type WasteTypeId =
   | 'oldClothes'
   | 'whiteTray'
   | 'hazardous'
+  | 'communityPaper'
 
 export type WasteMaster = {
   id: WasteTypeId
@@ -129,6 +130,17 @@ export const WASTE_TYPES: Record<WasteTypeId, WasteMaster> = {
       'モバイルバッテリー・リチウムイオン電池',
       'ライター（使い切ってから）',
     ],
+  },
+  communityPaper: {
+    id: 'communityPaper',
+    label: '古紙回収（登戸ファイターズ）',
+    shortLabel: '古紙回収',
+    color: '#fb923c',
+    bgColor: 'bg-orange-100',
+    borderColor: 'border-orange-300',
+    textColor: 'text-orange-800',
+    container: '品目ごとにひもでしばる',
+    notes: ['登戸ファイターズ主催の地域資源回収', '新聞紙・雑誌・段ボール・牛乳パックなど'],
   },
 }
 
