@@ -9,25 +9,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 作業対象のディレクトリに `AGENTS.md` があれば必ず先に読むこと。
 
 ```
-src/data/       → AGENTS.md（地区データの更新手順・フォーマット規約）
-src/components/ → AGENTS.md（コンポーネント規約・Tailwind 注意点）
-src/pages/      → AGENTS.md（ページ構成・Safe Area 対応）
-src/hooks/      → AGENTS.md（カスタムフック規約）
-src/store/      → AGENTS.md（Zustand ストア規約）
-workers/        → AGENTS.md（Cloudflare Workers API・Web Push 実装）
-terraform/      → AGENTS.md（インフラ構成・IP 制限・シークレット管理・v5 構文注意点）
+frontend/src/data/       → AGENTS.md（地区データの更新手順・フォーマット規約）
+frontend/src/components/ → AGENTS.md（コンポーネント規約・Tailwind 注意点）
+frontend/src/pages/      → AGENTS.md（ページ構成・Safe Area 対応）
+frontend/src/hooks/      → AGENTS.md（カスタムフック規約）
+frontend/src/store/      → AGENTS.md（Zustand ストア規約）
+backend/                 → AGENTS.md（Go API・Web Push・スケジュール通知実装）
+helm/                    → AGENTS.md（Helm chart 構成・デプロイ手順）
 ```
 
 ## 開発環境
 
-**必要な外部ツール**: `op`（1Password CLI）— Workers デプロイ時の `op run` で必要
-
 ```bash
 # ディレクトリに cd するだけで nix develop が自動ロードされる（direnv）
-npm run dev      # 開発サーバー
-npm run build    # tsc -b && vite build
-npm run preview  # 本番ビルドの確認
+
+# フロントエンド
+cd frontend
+pnpm run dev      # 開発サーバー（/api → localhost:8080 にプロキシ）
+pnpm run build    # tsc -b && vite build
+pnpm run preview  # 本番ビルドの確認
 # lint・format コマンドは存在しない。TypeScript strict チェック（tsc -b）がリンターを兼ねる。
+
+# バックエンド（Go）
+cd backend
+go run ./cmd/api          # サーバー起動（ポート 8080）
+go run ./cmd/api notify   # バッチ通知実行
+go test ./...             # テスト実行
 ```
 
 ## TypeScript
@@ -35,7 +42,6 @@ npm run preview  # 本番ビルドの確認
 - `strict: true` / `noUnusedLocals` / `noUnusedParameters` — 未使用の import・変数はビルドエラーになる
 - `any` / `unknown` 型は使わない
 - `noUncheckedSideEffectImports` — 副作用のみの import は禁止
-- **バージョン分離**: ルートは TS 7.x、`workers/` は TS 5.7.x — `workers/` のコードには TS7 固有の構文を使わないこと
 
 ## Tailwind CSS v4
 
@@ -51,52 +57,62 @@ style={{ backgroundColor: waste.color }}
 
 ## 地区データの更新ワークフロー
 
-**収集カレンダー PDF を渡したら `src/data/` 以下の3ファイルを生成・更新する。**
-詳細フォーマットは `src/data/AGENTS.md` を参照。
+**収集カレンダー PDF を渡したら `frontend/src/data/` 以下の3ファイルと `backend/internal/service/data/schedule.json` を更新する。**
+詳細フォーマットは `frontend/src/data/AGENTS.md` を参照。
 
-1. `src/data/config.ts` — 地区名・連絡先・期間
-2. `src/data/schedule.ts` — 収集日データ（YYYY-MM-DD 形式）
-3. `src/data/wasteTypes.ts` — 品目マスター（既存地区で変更不要な場合が多い）
+1. `frontend/src/data/config.ts` — 地区名・連絡先・期間
+2. `frontend/src/data/schedule.ts` — 収集日データ（YYYY-MM-DD 形式）
+3. `frontend/src/data/wasteTypes.ts` — 品目マスター（既存地区で変更不要な場合が多い）
 
-**`schedule.ts` を更新した場合は `workers/src/schedule.ts` も必ず同期すること。**
-（Worker は独自の静的スケジュールを持ち、プッシュ通知の送信タイミングに使用される）
+**`schedule.ts` を更新した場合は `backend/internal/service/data/schedule.json` も必ず同期すること。**
+（バックエンドは `schedule.json` を `//go:embed` でバイナリに埋め込み、プッシュ通知の送信タイミングに使用する）
 
 ## ローカルでの Push 通知テスト
 
-`vite.config.ts` に `/api` → `localhost:8787` のプロキシ設定済み。以下を用意すれば本番と同じ VAPID キーでテストできる。
+シークレットは 1Password で管理。`op run` 経由で注入する。
 
-- `workers/.dev.vars` — `VAPID_PRIVATE_KEY=<秘密鍵>` （gitignore 済み）
-- `.env.local` — `VITE_VAPID_PUBLIC_KEY=<公開鍵>` （gitignore 済み）
-- `workers/wrangler.toml` — `VAPID_PUBLIC_KEY` に公開鍵を記載済み
+```bash
+# Docker Compose でフルスタック起動
+op run --env-file=.env.1password -- docker compose up -d
 
-詳細手順は `workers/AGENTS.md` を参照。
+# バッチ通知を手動実行
+op run --env-file=.env.1password -- docker compose --profile notify run --rm notify
+
+# Go サーバーを直接起動（開発時）
+op run --env-file=.env.1password -- bash -c 'REDIS_ADDR=localhost:6379 go run ./cmd/api'
+```
+
+詳細手順は `backend/AGENTS.md` を参照。
 
 ## Service Worker
 
-`vite.config.ts` は `injectManifest` モードを使用。カスタム SW は `src/sw.ts`。
+`frontend/vite.config.ts` は `injectManifest` モードを使用。カスタム SW は `frontend/src/sw.ts`。
 `generateSW` モードに戻してはいけない（push イベントハンドラが消える）。
 
 ## デプロイ
 
-**PWA（Cloudflare Pages）**: GitHub push で自動ビルド・デプロイ。
-ビルドコマンド: `npm run build` / 出力: `dist` / Node.js: 24
-
-**Workers API**: `workers/` 配下。Terraform でデプロイする（GitHub 連携なし）。
+**フロントエンド（Docker イメージ）**:
 ```bash
-cd workers && npm run build   # workers/dist/index.js を生成
-cd ..
-op run --env-file=terraform/.env.1password -- terraform apply
+docker build -t ghcr.io/itk13201/gomi-no-hi-frontend:latest frontend/
+docker push ghcr.io/itk13201/gomi-no-hi-frontend:latest
 ```
 
-**wrangler の設定ファイルが2つある:**
-- `wrangler.jsonc`（ルート）— Pages 用（assets）
-- `workers/wrangler.toml` — Workers API 用
+**バックエンド（Docker イメージ）**:
+```bash
+docker build -t ghcr.io/itk13201/gomi-no-hi-backend:latest backend/
+docker push ghcr.io/itk13201/gomi-no-hi-backend:latest
+```
 
-`workers/` でコマンドを実行するときは必ず `--config wrangler.toml` を付けること（ルートの `wrangler.jsonc` を誤って読む）。
+**Kubernetes（Helm）**:
+```bash
+op run --env-file=.env.1password -- helm upgrade --install gomi-no-hi ./helm/gomi-no-hi \
+  -n gomi-no-hi \
+  --set registry.username="$GITHUB_USERNAME" \
+  --set registry.password="$GHCR_PAT" \
+  --set backend.vapid.publicKey="$VAPID_PUBLIC_KEY" \
+  --set backend.vapid.privateKey="$VAPID_PRIVATE_KEY" \
+  --set backend.vapid.subject="$VAPID_SUBJECT" \
+  --set redis.password="$REDIS_PASSWORD"
+```
 
-## Terraform
-
-Cloudflare インフラ（Workers・KV・WAF・Pages）はすべて `terraform/` 配下の Terraform で管理する。
-
-**Terraform コードを書く・編集するときは必ず `.mcp.json` の Terraform MCP server を参照すること。**
-リソース仕様・引数・バージョン互換性をコード記述前に確認する。
+詳細手順は `helm/AGENTS.md` を参照。

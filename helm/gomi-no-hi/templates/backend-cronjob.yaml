@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gomi-no-hi-notify
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: backend-notify
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+            {{- toYaml .Values.imagePullSecrets | nindent 12 }}
+          restartPolicy: OnFailure
+          containers:
+            - name: notify
+              image: {{ include "gomi-no-hi.backendImage" . }}
+              imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+              command: ["/api", "notify"]
+              env:
+                - name: REDIS_ADDR
+                  value: "{{ .Values.redis.host }}:{{ .Values.redis.port }}"
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: redis-secret
+                      key: REDIS_PASSWORD
+                - name: VAPID_PUBLIC_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: backend-secret
+                      key: VAPID_PUBLIC_KEY
+                - name: VAPID_PRIVATE_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: backend-secret
+                      key: VAPID_PRIVATE_KEY
+                - name: VAPID_SUBJECT
+                  valueFrom:
+                    secretKeyRef:
+                      name: backend-secret
+                      key: VAPID_SUBJECT
+              resources:
+                {{- toYaml .Values.backend.resources | nindent 16 }}

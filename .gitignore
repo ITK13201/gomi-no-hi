@@ -6,4 +6,3 @@ dev-dist
 *.local
 tmp/
 .direnv
-workers/.wrangler

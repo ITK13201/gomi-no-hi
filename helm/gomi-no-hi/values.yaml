@@ -1,0 +1,62 @@
+registry:
+  server: ghcr.io
+  username: ""
+  password: ""
+
+imagePullSecrets:
+  - name: ghcr-secret
+
+frontend:
+  image:
+    # 未指定の場合 <registry.server>/<registry.username>/gomi-no-hi-frontend を使用
+    repository: ""
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+backend:
+  image:
+    # 未指定の場合 <registry.server>/<registry.username>/gomi-no-hi-backend を使用
+    repository: ""
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  env:
+    GIN_MODE: release
+  vapid:
+    publicKey: ""
+    privateKey: ""
+    subject: ""
+
+redis:
+  image:
+    repository: redis
+    tag: 7-alpine
+    pullPolicy: IfNotPresent
+  host: redis
+  port: 6379
+  password: ""
+  storage:
+    size: 1Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
