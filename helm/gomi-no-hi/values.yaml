@@ -1,7 +1,12 @@
+nameOverride: ""
+fullnameOverride: ""
+
 registry:
   server: ghcr.io
   username: ""
   password: ""
+  # 既存の kubernetes.io/dockerconfigjson Secret 名。設定時はチャートで Secret を作成しない。
+  existingSecret: ""
 
 imagePullSecrets:
   - name: ghcr-secret
@@ -12,14 +17,8 @@ frontend:
     repository: ""
     tag: latest
     pullPolicy: IfNotPresent
-  replicas: 1
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 200m
-      memory: 128Mi
+  replicaCount: 1
+  resources: {}
 
 backend:
   image:
@@ -27,20 +26,17 @@ backend:
     repository: ""
     tag: latest
     pullPolicy: IfNotPresent
-  replicas: 1
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 200m
-      memory: 128Mi
+  replicaCount: 1
   env:
     GIN_MODE: release
   vapid:
     publicKey: ""
     privateKey: ""
     subject: ""
+  # 既存の Opaque Secret 名。設定時はチャートで Secret を作成しない。
+  # Secret には VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT が必要。
+  existingSecret: ""
+  resources: {}
 
 redis:
   image:
@@ -49,14 +45,13 @@ redis:
     pullPolicy: IfNotPresent
   host: redis
   port: 6379
-  password: ""
-  storage:
+  auth:
+    password: ""
+    # 既存の Opaque Secret 名。設定時はチャートで Secret を作成しない。
+    # Secret には REDIS_PASSWORD が必要。
+    existingSecret: ""
+  persistence:
+    enabled: true
     size: 1Gi
     storageClass: ""
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 200m
-      memory: 256Mi
+  resources: {}

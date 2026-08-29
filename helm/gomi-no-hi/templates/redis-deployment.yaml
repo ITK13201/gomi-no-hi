@@ -1,19 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis
+  name: {{ include "gomi-no-hi.redis.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: redis
+    {{- include "gomi-no-hi.labels" . | nindent 4 }}
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
-      app: redis
+      {{- include "gomi-no-hi.redis.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: redis
+        {{- include "gomi-no-hi.redis.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/redis-secret.yaml") . | sha256sum }}
     spec:
       containers:
         - name: redis
@@ -29,16 +33,34 @@ spec:
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: redis-secret
+                  name: {{ .Values.redis.auth.existingSecret | default (include "gomi-no-hi.redis.fullname" .) }}
                   key: REDIS_PASSWORD
           ports:
-            - containerPort: 6379
+            - name: redis
+              containerPort: 6379
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "-a", "$(REDIS_PASSWORD)", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "-a", "$(REDIS_PASSWORD)", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
           volumeMounts:
             - name: data
               mountPath: /data
+          {{- with .Values.redis.resources }}
           resources:
-            {{- toYaml .Values.redis.resources | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
       volumes:
         - name: data
+          {{- if .Values.redis.persistence.enabled }}
           persistentVolumeClaim:
-            claimName: redis-data
+            claimName: {{ include "gomi-no-hi.redis.fullname" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

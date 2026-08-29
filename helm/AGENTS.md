@@ -37,29 +37,41 @@ helm/gomi-no-hi/
 
 ## インストール・アップグレード
 
-```bash
-# 初回インストール
-op run --env-file=../.env.1password -- helm install gomi-no-hi ./helm/gomi-no-hi \
-  -n gomi-no-hi \
-  --set registry.username="$GITHUB_USERNAME" \
-  --set registry.password="$GHCR_PAT" \
-  --set backend.vapid.publicKey="$VAPID_PUBLIC_KEY" \
-  --set backend.vapid.privateKey="$VAPID_PRIVATE_KEY" \
-  --set backend.vapid.subject="$VAPID_SUBJECT" \
-  --set redis.password="$REDIS_PASSWORD"
+### 開発環境（チャートが Secret を作成）
 
-# アップグレード（イメージタグ指定）
-op run --env-file=../.env.1password -- helm upgrade gomi-no-hi ./helm/gomi-no-hi \
+```bash
+op run --env-file=../.env.1password -- helm upgrade --install gomi-no-hi ./helm/gomi-no-hi \
   -n gomi-no-hi \
   --set registry.username="$GITHUB_USERNAME" \
   --set registry.password="$GHCR_PAT" \
   --set backend.vapid.publicKey="$VAPID_PUBLIC_KEY" \
   --set backend.vapid.privateKey="$VAPID_PRIVATE_KEY" \
   --set backend.vapid.subject="$VAPID_SUBJECT" \
-  --set redis.password="$REDIS_PASSWORD" \
+  --set redis.auth.password="$REDIS_PASSWORD"
+```
+
+### 本番環境（既存 Secret を参照）
+
+Secret を事前に `kubectl create secret` または外部シークレット管理で作成し、名前を `existingSecret` に渡す。
+
+```bash
+helm upgrade --install gomi-no-hi ./helm/gomi-no-hi \
+  -n gomi-no-hi \
+  --set registry.username="$GITHUB_USERNAME" \
+  --set registry.existingSecret=<ghcr-secret名> \
+  --set backend.existingSecret=<backend-secret名> \
+  --set redis.auth.existingSecret=<redis-secret名> \
   --set backend.image.tag=v1.2.0 \
   --set frontend.image.tag=v1.2.0
 ```
+
+各 Secret に必要なキー：
+
+| Secret | キー |
+|--------|------|
+| backend | `VAPID_PUBLIC_KEY` `VAPID_PRIVATE_KEY` `VAPID_SUBJECT` |
+| redis | `REDIS_PASSWORD` |
+| ghcr（imagePullSecret） | `.dockerconfigjson` |
 
 ## テンプレート確認
 

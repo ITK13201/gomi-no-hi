@@ -1,14 +1,18 @@
+{{- if .Values.redis.persistence.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: redis-data
+  name: {{ include "gomi-no-hi.redis.fullname" . }}
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gomi-no-hi.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.redis.storage.size }}
-  {{- if .Values.redis.storage.storageClass }}
-  storageClassName: {{ .Values.redis.storage.storageClass }}
+      storage: {{ .Values.redis.persistence.size }}
+  {{- if .Values.redis.persistence.storageClass }}
+  storageClassName: {{ .Values.redis.persistence.storageClass }}
   {{- end }}
+{{- end }}

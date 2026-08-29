@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
+  name: {{ include "gomi-no-hi.frontend.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: frontend
+    {{- include "gomi-no-hi.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.frontend.replicas }}
+  replicas: {{ .Values.frontend.replicaCount }}
   selector:
     matchLabels:
-      app: frontend
+      {{- include "gomi-no-hi.frontend.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: frontend
+        {{- include "gomi-no-hi.frontend.selectorLabels" . | nindent 8 }}
     spec:
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
@@ -22,6 +22,22 @@ spec:
           image: {{ include "gomi-no-hi.frontendImage" . }}
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           ports:
-            - containerPort: 80
+            - name: http
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          {{- with .Values.frontend.resources }}
           resources:
-            {{- toYaml .Values.frontend.resources | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
