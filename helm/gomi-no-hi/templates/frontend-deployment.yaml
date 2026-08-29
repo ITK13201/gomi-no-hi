@@ -15,8 +15,7 @@ spec:
       labels:
         {{- include "gomi-no-hi.frontend.selectorLabels" . | nindent 8 }}
     spec:
-      imagePullSecrets:
-        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- include "gomi-no-hi.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: frontend
           image: {{ include "gomi-no-hi.frontendImage" . }}

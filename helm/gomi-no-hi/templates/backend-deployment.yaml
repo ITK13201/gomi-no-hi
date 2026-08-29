@@ -17,8 +17,7 @@ spec:
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/backend-secret.yaml") . | sha256sum }}
     spec:
-      imagePullSecrets:
-        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- include "gomi-no-hi.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: backend
           image: {{ include "gomi-no-hi.backendImage" . }}
@@ -34,7 +33,7 @@ spec:
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.redis.auth.existingSecret | default (include "gomi-no-hi.redis.fullname" .) }}
+                  name: {{ .Values.backend.existingSecret | default (include "gomi-no-hi.backend.fullname" .) }}
                   key: REDIS_PASSWORD
             - name: VAPID_PUBLIC_KEY
               valueFrom:

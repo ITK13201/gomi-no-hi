@@ -59,12 +59,17 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: redis
 {{- end }}
 
+{{- define "gomi-no-hi.imagePullSecrets" -}}
+{{- if .Values.registry.existingSecret }}
+imagePullSecrets:
+  - name: {{ .Values.registry.existingSecret }}
+{{- end }}
+{{- end }}
+
 {{- define "gomi-no-hi.frontendImage" -}}
-{{- $repo := .Values.frontend.image.repository | default (printf "%s/%s/gomi-no-hi-frontend" .Values.registry.server .Values.registry.username) -}}
-{{- printf "%s:%s" $repo .Values.frontend.image.tag -}}
+{{- printf "%s:%s" (required "frontend.image.repository is required" .Values.frontend.image.repository) .Values.frontend.image.tag -}}
 {{- end }}
 
 {{- define "gomi-no-hi.backendImage" -}}
-{{- $repo := .Values.backend.image.repository | default (printf "%s/%s/gomi-no-hi-backend" .Values.registry.server .Values.registry.username) -}}
-{{- printf "%s:%s" $repo .Values.backend.image.tag -}}
+{{- printf "%s:%s" (required "backend.image.repository is required" .Values.backend.image.repository) .Values.backend.image.tag -}}
 {{- end }}

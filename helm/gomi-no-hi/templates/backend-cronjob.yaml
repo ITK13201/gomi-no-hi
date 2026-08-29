@@ -12,8 +12,7 @@ spec:
     spec:
       template:
         spec:
-          imagePullSecrets:
-            {{- toYaml .Values.imagePullSecrets | nindent 12 }}
+          {{- include "gomi-no-hi.imagePullSecrets" . | nindent 10 }}
           restartPolicy: OnFailure
           containers:
             - name: notify
@@ -26,7 +25,7 @@ spec:
                 - name: REDIS_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: {{ .Values.redis.auth.existingSecret | default (include "gomi-no-hi.redis.fullname" .) }}
+                      name: {{ .Values.backend.existingSecret | default (include "gomi-no-hi.backend.fullname" .) }}
                       key: REDIS_PASSWORD
                 - name: VAPID_PUBLIC_KEY
                   valueFrom:

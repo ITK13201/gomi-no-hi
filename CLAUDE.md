@@ -91,28 +91,6 @@ op run --env-file=.env.1password -- bash -c 'REDIS_ADDR=localhost:6379 go run ./
 
 ## デプロイ
 
-**フロントエンド（Docker イメージ）**:
-```bash
-docker build -t ghcr.io/itk13201/gomi-no-hi-frontend:latest frontend/
-docker push ghcr.io/itk13201/gomi-no-hi-frontend:latest
-```
+**Docker イメージ**: `git tag v*` を push すると GitHub Actions が自動ビルド・push する（`.github/workflows/build.yml`）。
 
-**バックエンド（Docker イメージ）**:
-```bash
-docker build -t ghcr.io/itk13201/gomi-no-hi-backend:latest backend/
-docker push ghcr.io/itk13201/gomi-no-hi-backend:latest
-```
-
-**Kubernetes（Helm）**:
-```bash
-op run --env-file=.env.1password -- helm upgrade --install gomi-no-hi ./helm/gomi-no-hi \
-  -n gomi-no-hi \
-  --set registry.username="$GITHUB_USERNAME" \
-  --set registry.password="$GHCR_PAT" \
-  --set backend.vapid.publicKey="$VAPID_PUBLIC_KEY" \
-  --set backend.vapid.privateKey="$VAPID_PRIVATE_KEY" \
-  --set backend.vapid.subject="$VAPID_SUBJECT" \
-  --set redis.password="$REDIS_PASSWORD"
-```
-
-詳細手順は `helm/AGENTS.md` を参照。
+**Kubernetes（Helm）**: 詳細手順は `helm/AGENTS.md` を参照。

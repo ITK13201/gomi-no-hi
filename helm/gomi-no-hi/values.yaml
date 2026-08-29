@@ -2,18 +2,11 @@ nameOverride: ""
 fullnameOverride: ""
 
 registry:
-  server: ghcr.io
-  username: ""
-  password: ""
-  # 既存の kubernetes.io/dockerconfigjson Secret 名。設定時はチャートで Secret を作成しない。
-  existingSecret: ""
-
-imagePullSecrets:
-  - name: ghcr-secret
+  # プロジェクト横断で管理される imagePullSecret（kubernetes.io/dockerconfigjson）の Secret 名
+  existingSecret: ghcr-secret
 
 frontend:
   image:
-    # 未指定の場合 <registry.server>/<registry.username>/gomi-no-hi-frontend を使用
     repository: ""
     tag: latest
     pullPolicy: IfNotPresent
@@ -22,7 +15,6 @@ frontend:
 
 backend:
   image:
-    # 未指定の場合 <registry.server>/<registry.username>/gomi-no-hi-backend を使用
     repository: ""
     tag: latest
     pullPolicy: IfNotPresent
