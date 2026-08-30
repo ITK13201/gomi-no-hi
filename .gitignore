@@ -6,3 +6,4 @@ dev-dist
 *.local
 tmp/
 .direnv
+frontend/public/pdf.worker.min.mjs

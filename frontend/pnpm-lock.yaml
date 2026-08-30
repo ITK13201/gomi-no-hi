@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      pdfjs-dist:
+        specifier: 5.4.296
+        version: 5.4.296
       react:
         specifier: ^19.2.7
         version: 19.2.7
