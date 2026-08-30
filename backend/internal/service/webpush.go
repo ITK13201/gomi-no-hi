@@ -73,7 +73,7 @@ func (s *Service) SendWebPush(ctx context.Context, sub domain.Subscription, titl
 	req.Header.Set("Content-Type", "application/octet-stream")
 	req.Header.Set("Content-Encoding", "aes128gcm")
 	req.Header.Set("Authorization", authHdr)
-	req.Header.Set("TTL", "86400")
+	req.Header.Set("TTL", "28800")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

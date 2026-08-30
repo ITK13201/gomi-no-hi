@@ -201,6 +201,77 @@ func TestFormatDateLabel(t *testing.T) {
 	}
 }
 
+func TestFormatDateLabel_MultiDays(t *testing.T) {
+	tests := []struct {
+		date     string
+		expected string
+	}{
+		{"2026-04-06", "4/6・月"}, // Monday
+		{"2026-04-08", "4/8・水"}, // Wednesday
+		{"2026-04-11", "4/11・土"}, // Saturday
+		{"2026-04-26", "4/26・日"}, // Sunday
+	}
+	for _, tt := range tests {
+		got := formatDateLabel(tt.date)
+		if got != tt.expected {
+			t.Errorf("date=%s: got %q want %q", tt.date, got, tt.expected)
+		}
+	}
+}
+
+func TestToJSTDateStr_Boundary(t *testing.T) {
+	tests := []struct {
+		utc      time.Time
+		expected string
+	}{
+		// UTC 14:59 = JST 23:59 → same day in JST
+		{time.Date(2026, 4, 1, 14, 59, 0, 0, time.UTC), "2026-04-01"},
+		// UTC 15:00 = JST 00:00 → next day in JST
+		{time.Date(2026, 4, 1, 15, 0, 0, 0, time.UTC), "2026-04-02"},
+		// UTC 15:01 = JST 00:01 → next day in JST
+		{time.Date(2026, 4, 1, 15, 1, 0, 0, time.UTC), "2026-04-02"},
+	}
+	for _, tt := range tests {
+		got := toJSTDateStr(tt.utc)
+		if got != tt.expected {
+			t.Errorf("utc=%v: got %q want %q", tt.utc, got, tt.expected)
+		}
+	}
+}
+
+func TestRunBatchNotify_DateBoundary(t *testing.T) {
+	// Verify that todayStr and tomorrowStr are consistent with jstHour
+	// near the JST midnight boundary (UTC 14:xx–15:xx).
+	tests := []struct {
+		utc           time.Time
+		wantJSTHour   int
+		wantToday     string
+		wantTomorrow  string
+	}{
+		// UTC 14:00 = JST 23:00 (still Apr 1 in JST)
+		{time.Date(2026, 4, 1, 14, 0, 0, 0, time.UTC), 23, "2026-04-01", "2026-04-02"},
+		// UTC 15:00 = JST 00:00 (Apr 2 starts in JST)
+		{time.Date(2026, 4, 1, 15, 0, 0, 0, time.UTC), 0, "2026-04-02", "2026-04-03"},
+		// UTC 16:00 = JST 01:00 (still Apr 2 in JST)
+		{time.Date(2026, 4, 1, 16, 0, 0, 0, time.UTC), 1, "2026-04-02", "2026-04-03"},
+	}
+	for _, tt := range tests {
+		jstHour := (tt.utc.UTC().Hour() + 9) % 24
+		todayStr := toJSTDateStr(tt.utc)
+		tomorrowStr := toJSTDateStr(tt.utc.Add(24 * time.Hour))
+
+		if jstHour != tt.wantJSTHour {
+			t.Errorf("utc=%v: jstHour got %d want %d", tt.utc, jstHour, tt.wantJSTHour)
+		}
+		if todayStr != tt.wantToday {
+			t.Errorf("utc=%v: todayStr got %q want %q", tt.utc, todayStr, tt.wantToday)
+		}
+		if tomorrowStr != tt.wantTomorrow {
+			t.Errorf("utc=%v: tomorrowStr got %q want %q", tt.utc, tomorrowStr, tt.wantTomorrow)
+		}
+	}
+}
+
 func TestBuildBody(t *testing.T) {
 	salt := make([]byte, 16)
 	senderPub := make([]byte, 65)
