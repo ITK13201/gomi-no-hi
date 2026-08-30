@@ -2,39 +2,36 @@ name: Release Helm Chart
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'helm/**'
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
-        with:
-          charts_dir: helm
-          skip_existing: true
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Login to GHCR
+        run: |
+          helm registry login ${{ env.REGISTRY }} \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package chart
+        run: helm package helm/gomi-no-hi
+
+      - name: Push chart to GHCR
+        run: helm push gomi-no-hi-*.tgz oci://${{ env.REGISTRY }}/${{ env.OWNER }}
