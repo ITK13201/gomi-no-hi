@@ -34,4 +34,6 @@ jobs:
         run: helm package helm/gomi-no-hi
 
       - name: Push chart to GHCR
-        run: helm push gomi-no-hi-*.tgz oci://${{ env.REGISTRY }}/${{ env.OWNER }}
+        run: helm push gomi-no-hi-*.tgz oci://${{ env.REGISTRY }}/${OWNER,,}
+        env:
+          OWNER: ${{ env.OWNER }}
