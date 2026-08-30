@@ -1,6 +1,6 @@
 {
   "name": "gomi-no-hi",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "private": true,
   "packageManager": "pnpm@11.4.0",
   "scripts": {
