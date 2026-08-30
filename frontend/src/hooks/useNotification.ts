@@ -36,6 +36,8 @@ export function useNotification() {
     setPermission(perm)
     if (perm !== 'granted') return
 
+    setEnabled(true)
+
     const registration = await navigator.serviceWorker.ready
     const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
     const subscription = await registration.pushManager.subscribe({
@@ -48,8 +50,6 @@ export function useNotification() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ subscription, morningHour, eveningHour }),
     })
-
-    setEnabled(true)
   }
 
   async function disable() {
