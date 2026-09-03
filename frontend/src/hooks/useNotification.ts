@@ -21,10 +21,11 @@ export function useNotification() {
       const registration = await navigator.serviceWorker.ready
       const subscription = await registration.pushManager.getSubscription()
       if (!subscription) return
+      const subJSON = subscription.toJSON()
       await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription, morningHour, eveningHour }),
+        body: JSON.stringify({ endpoint: subscription.endpoint, keys: subJSON.keys, morningHour, eveningHour }),
       })
     })()
   }, [morningHour, eveningHour, enabled, permission])
@@ -44,11 +45,12 @@ export function useNotification() {
       userVisibleOnly: true,
       applicationServerKey: vapidKey,
     })
+    const subJSON = subscription.toJSON()
 
     await fetch('/api/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscription, morningHour, eveningHour }),
+      body: JSON.stringify({ endpoint: subscription.endpoint, keys: subJSON.keys, morningHour, eveningHour }),
     })
   }
 
