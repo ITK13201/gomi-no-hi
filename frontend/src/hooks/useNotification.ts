@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNotificationStore } from '../store/notificationStore'
 
 export function useNotification() {
   const { enabled, morningHour, eveningHour, permission, setEnabled, setPermission } =
     useNotificationStore()
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!('Notification' in window)) return
@@ -38,20 +39,26 @@ export function useNotification() {
     if (perm !== 'granted') return
 
     setEnabled(true)
+    try {
+      const registration = await navigator.serviceWorker.ready
+      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: vapidKey,
+      })
+      const subJSON = subscription.toJSON()
 
-    const registration = await navigator.serviceWorker.ready
-    const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: vapidKey,
-    })
-    const subJSON = subscription.toJSON()
-
-    await fetch('/api/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ endpoint: subscription.endpoint, keys: subJSON.keys, morningHour, eveningHour }),
-    })
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: subscription.endpoint, keys: subJSON.keys, morningHour, eveningHour }),
+      })
+      if (!res.ok) throw new Error(res.statusText)
+      setError(null)
+    } catch {
+      setEnabled(false)
+      setError('通知の登録に失敗しました。もう一度お試しください。')
+    }
   }
 
   async function disable() {
@@ -72,5 +79,9 @@ export function useNotification() {
     setEnabled(false)
   }
 
-  return { enabled, permission, enable, disable }
+  function clearError() {
+    setError(null)
+  }
+
+  return { enabled, permission, error, enable, disable, clearError }
 }

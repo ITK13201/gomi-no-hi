@@ -6,7 +6,7 @@ declare const __APP_VERSION__: string
 
 export function Settings() {
   const { eveningHour, morningHour, setEveningHour, setMorningHour } = useNotificationStore()
-  const { enabled, permission, enable, disable } = useNotification()
+  const { enabled, permission, error, enable, disable } = useNotification()
 
   function handleToggleNotification() {
     if (enabled) {
@@ -55,6 +55,9 @@ export function Settings() {
                 <p className="text-sm font-medium text-gray-800">収集日通知</p>
                 {!notificationSupported && (
                   <p className="text-xs text-red-400 mt-0.5">このブラウザは通知に対応していません</p>
+                )}
+                {error && (
+                  <p className="text-xs text-red-400 mt-0.5">{error}</p>
                 )}
               </div>
               <button

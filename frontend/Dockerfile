@@ -4,7 +4,8 @@ RUN corepack enable && corepack prepare pnpm@11.4.0 --activate
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm run build
+ARG VITE_VAPID_PUBLIC_KEY
+RUN VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY pnpm run build
 
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
