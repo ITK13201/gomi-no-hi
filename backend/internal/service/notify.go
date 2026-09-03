@@ -59,6 +59,8 @@ func jstLocation() *time.Location {
 }
 
 func runBatchNotify(ctx context.Context, s *Service) error {
+	slog.InfoContext(ctx, "runBatchNotify started")
+
 	now := time.Now().UTC()
 	jstHour := (now.UTC().Hour() + 9) % 24
 
@@ -67,9 +69,13 @@ func runBatchNotify(ctx context.Context, s *Service) error {
 
 	subs, err := s.AllSubscriptions(ctx)
 	if err != nil {
+		slog.ErrorContext(ctx, "runBatchNotify failed: fetch subscriptions",
+			slog.Group("extra", "error", err),
+		)
 		return fmt.Errorf("fetch subscriptions: %w", err)
 	}
 
+	sent := 0
 	for _, sub := range subs {
 		var notification *struct{ title, body string }
 
@@ -95,20 +101,29 @@ func runBatchNotify(ctx context.Context, s *Service) error {
 			continue
 		}
 
-		err := s.SendWebPush(ctx, sub.Subscription, notification.title, notification.body)
-		if err != nil {
+		if err := s.SendWebPush(ctx, sub.Subscription, notification.title, notification.body); err != nil {
 			if gone, ok := err.(*ErrSubscriptionGone); ok {
 				if delErr := s.DeleteSubscription(ctx, gone.Endpoint); delErr != nil {
-					slog.Error("failed to delete stale subscription", "endpoint", gone.Endpoint, "error", delErr)
+					slog.ErrorContext(ctx, "runBatchNotify: delete stale subscription failed",
+						slog.Group("extra", "endpoint", gone.Endpoint, "error", delErr),
+					)
 				} else {
-					slog.Info("deleted stale subscription", "endpoint", gone.Endpoint, "reason", "410/404")
+					slog.InfoContext(ctx, "runBatchNotify: deleted stale subscription",
+						slog.Group("extra", "endpoint", gone.Endpoint, "reason", "410/404"),
+					)
 				}
 			} else {
-				slog.Error("push failed", "endpoint", sub.Endpoint, "error", err)
+				slog.ErrorContext(ctx, "runBatchNotify: push failed",
+					slog.Group("extra", "endpoint", sub.Endpoint, "error", err),
+				)
 			}
 		} else {
-			slog.Info("push sent", "endpoint", sub.Endpoint)
+			sent++
 		}
 	}
+
+	slog.InfoContext(ctx, "runBatchNotify finished",
+		slog.Group("extra", "total", len(subs), "sent", sent),
+	)
 	return nil
 }

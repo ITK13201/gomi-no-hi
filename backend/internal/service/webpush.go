@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -40,13 +41,23 @@ func (e *ErrSubscriptionGone) Error() string {
 }
 
 func (s *Service) SendWebPush(ctx context.Context, sub domain.Subscription, title, body string) error {
+	slog.InfoContext(ctx, "SendWebPush started",
+		slog.Group("extra", "endpoint", sub.Endpoint, "title", title),
+	)
+
 	data, err := json.Marshal(pushPayload{Title: title, Body: body})
 	if err != nil {
+		slog.ErrorContext(ctx, "SendWebPush failed: marshal payload",
+			slog.Group("extra", "error", err),
+		)
 		return err
 	}
 
 	ciphertext, senderPub, salt, err := encryptPayload(data, sub.Keys.P256dh, sub.Keys.Auth)
 	if err != nil {
+		slog.ErrorContext(ctx, "SendWebPush failed: encrypt payload",
+			slog.Group("extra", "error", err),
+		)
 		return fmt.Errorf("encrypt: %w", err)
 	}
 
@@ -54,12 +65,18 @@ func (s *Service) SendWebPush(ctx context.Context, sub domain.Subscription, titl
 
 	u, err := url.Parse(sub.Endpoint)
 	if err != nil {
+		slog.ErrorContext(ctx, "SendWebPush failed: parse endpoint",
+			slog.Group("extra", "endpoint", sub.Endpoint, "error", err),
+		)
 		return err
 	}
 	audience := fmt.Sprintf("%s://%s", u.Scheme, u.Host)
 
 	vapidToken, err := s.buildVAPIDJWT(audience)
 	if err != nil {
+		slog.ErrorContext(ctx, "SendWebPush failed: build VAPID JWT",
+			slog.Group("extra", "error", err),
+		)
 		return fmt.Errorf("vapid jwt: %w", err)
 	}
 
@@ -68,6 +85,9 @@ func (s *Service) SendWebPush(ctx context.Context, sub domain.Subscription, titl
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, sub.Endpoint, bytes.NewReader(reqBody))
 	if err != nil {
+		slog.ErrorContext(ctx, "SendWebPush failed: build HTTP request",
+			slog.Group("extra", "error", err),
+		)
 		return err
 	}
 	req.Header.Set("Content-Type", "application/octet-stream")
@@ -77,16 +97,28 @@ func (s *Service) SendWebPush(ctx context.Context, sub domain.Subscription, titl
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		slog.ErrorContext(ctx, "SendWebPush failed: HTTP request",
+			slog.Group("extra", "endpoint", sub.Endpoint, "error", err),
+		)
 		return err
 	}
 	resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusOK, http.StatusCreated, http.StatusAccepted:
+		slog.InfoContext(ctx, "SendWebPush finished",
+			slog.Group("extra", "endpoint", sub.Endpoint, "status", resp.StatusCode),
+		)
 		return nil
 	case http.StatusGone, http.StatusNotFound:
+		slog.WarnContext(ctx, "SendWebPush: subscription gone",
+			slog.Group("extra", "endpoint", sub.Endpoint, "status", resp.StatusCode),
+		)
 		return &ErrSubscriptionGone{Endpoint: sub.Endpoint}
 	default:
+		slog.ErrorContext(ctx, "SendWebPush failed: unexpected status",
+			slog.Group("extra", "endpoint", sub.Endpoint, "status", resp.StatusCode),
+		)
 		return fmt.Errorf("push failed: %d", resp.StatusCode)
 	}
 }
