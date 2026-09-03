@@ -3,7 +3,7 @@ name: gomi-no-hi
 description: PWA garbage collection day notifier (frontend + backend + Redis)
 type: application
 version: 0.1.2
-appVersion: "2.0.5"
+appVersion: "2.0.6"
 maintainers:
   - name: Takumi Ikeda
     url: https://github.com/itk13201
