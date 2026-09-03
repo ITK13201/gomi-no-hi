@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/itk13201/gomi-no-hi/backend/internal/logger"
 )
 
 func RequestID() gin.HandlerFunc {
@@ -13,6 +14,8 @@ func RequestID() gin.HandlerFunc {
 		}
 		c.Set("request_id", id)
 		c.Header("X-Request-ID", id)
+		ctx := logger.WithRequestID(c.Request.Context(), id)
+		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}
 }

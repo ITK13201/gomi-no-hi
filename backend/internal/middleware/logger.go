@@ -41,7 +41,7 @@ func Logger() gin.HandlerFunc {
 		ct := c.ContentType()
 		if strings.HasPrefix(ct, "application/json") {
 			bodyBytes, _ := io.ReadAll(io.LimitReader(c.Request.Body, logBodyMaxBytes+1))
-			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+			c.Request.Body = io.NopCloser(io.MultiReader(bytes.NewBuffer(bodyBytes), c.Request.Body))
 			if len(bodyBytes) > logBodyMaxBytes {
 				requestBody = string(bodyBytes[:logBodyMaxBytes]) + "...(truncated)"
 			} else {
@@ -52,7 +52,6 @@ func Logger() gin.HandlerFunc {
 		slog.InfoContext(c.Request.Context(), "http.request",
 			slog.String("method", c.Request.Method),
 			slog.String("path", c.Request.URL.Path),
-			slog.String("request_id", c.GetString("request_id")),
 			slog.Group("extra",
 				"query", c.Request.URL.RawQuery,
 				"content_type", ct,
@@ -73,7 +72,6 @@ func Logger() gin.HandlerFunc {
 		slog.InfoContext(c.Request.Context(), "http.response",
 			slog.String("method", c.Request.Method),
 			slog.String("path", c.Request.URL.Path),
-			slog.String("request_id", c.GetString("request_id")),
 			slog.Group("extra",
 				"status", c.Writer.Status(),
 				"latency_ms", time.Since(start).Milliseconds(),

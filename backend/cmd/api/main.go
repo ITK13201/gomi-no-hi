@@ -10,14 +10,16 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/itk13201/gomi-no-hi/backend/internal/handler"
+	"github.com/itk13201/gomi-no-hi/backend/internal/logger"
 	"github.com/itk13201/gomi-no-hi/backend/internal/service"
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	slog.SetDefault(slog.New(logger.NewHandler(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
-	})))
+	}))))
 
 	if len(os.Args) > 1 && os.Args[1] == "notify" {
 		runNotify()
@@ -70,8 +72,20 @@ func runNotify() {
 	}
 	defer svc.Close()
 
-	if err := svc.RunNotify(context.Background()); err != nil {
-		slog.Error("notify error", "error", err)
+	batchID := uuid.NewString()
+	ctx := logger.WithBatchID(context.Background(), batchID)
+	start := time.Now()
+
+	slog.InfoContext(ctx, "batch.notify started")
+
+	if err := svc.RunNotify(ctx); err != nil {
+		slog.ErrorContext(ctx, "batch.notify failed",
+			slog.Group("extra", "error", err, "elapsed_ms", time.Since(start).Milliseconds()),
+		)
 		os.Exit(1)
 	}
+
+	slog.InfoContext(ctx, "batch.notify finished",
+		slog.Group("extra", "elapsed_ms", time.Since(start).Milliseconds()),
+	)
 }
